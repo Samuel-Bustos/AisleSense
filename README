@@ -1,0 +1,23 @@
+# AisleSense
+
+A simple inventory management API built with Node.js, Express, and MongoDB.
+
+## Features
+
+- Create, Read, Update, and Delete inventory items
+- Data validation and error handling
+
+## Installation
+
+1. Clone the repo
+2. Install dependencies: `npm install`
+3. Create a `.env` file with your MongoDB URI
+4. Run the server: `node app.js`
+
+## API Routes
+
+- `POST /api/items`: Create a new item
+- `GET /api/items`: Get all items
+- `GET /api/items/:id`: Get a specific item
+- `PUT /api/items/:id`: Update an item
+- `DELETE /api/items/:id`: Delete an item
