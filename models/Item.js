@@ -26,6 +26,25 @@ const itemSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  history: [
+    {
+      action: String,
+      timestamp: Date,
+      details: String,
+    },
+  ],
 });
+
+itemSchema.methods.addHistory = function (action, details) {
+  this.history.push({
+    action,
+    timestamp: new Date(),
+    details,
+  });
+};
 
 module.exports = mongoose.model("Item", itemSchema);
