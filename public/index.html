@@ -11,9 +11,11 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>Inventory Management</h1>
-            <button id="loginBtn" class="btn">Login</button>
-            <button id="registerBtn" class="btn">Register</button>
+            <h1>AisleSense</h1>
+            <div class="headerBtns">
+                <button id="loginBtn" class="btn">Login</button>
+                <button id="registerBtn" class="btn">Register</button>
+            </div>
         </header>
 
         <section class="search-filter">
@@ -30,6 +32,11 @@
         <section class="items-list">
             <!-- Items will generate here -->
         </section>
+        <div id="pagination">
+            <button id="prevPage" onclick="prevPage()">Previous</button>
+            <span id="pageNumber">Page 1</span>
+            <button id="nextPage" onclick="nextPage()">Next</button>
+        </div>
 
         <footer class="footer">
             <p>&copy; 2024 AisleSense</p>
@@ -42,25 +49,25 @@
         <div class="modal-main-container" id="modalContainer">
             <!--Register-->
             <div class="form-container registerModal" id>
-                <div class="modal-content">
+                <form class="modal-content">
                     <span class="close" onclick="closeModal('modal-container')">&times;</span>
                     <h1>Create Account</h1>
-                    <input type="text" placeholder="Name" />
-                    <input type="email" placeholder="Email" />
-                    <input type="password" placeholder="Password" />
+                    <input id="registerUsername" type="text" placeholder="Name" />
+                    <input id="registerEmail" type="email" placeholder="Email" />
+                    <input id="registerPassword" type="password" placeholder="Password" />
                     <button onclick="registerUser()">Sign Up</button>
-                </div>
+                </form>
             </div>
             <!--Login-->
             <div class="form-container loginModal">
-                <div class="modal-content">
+                <form action="" class="modal-content">
                     <span class="close" onclick="closeModal('modal-container')">&times;</span>
                     <h1>Sign in</h1>
-                    <input type="email" placeholder="Email" />
-                    <input type="password" placeholder="Password" />
-                    <a href="#">Forgot your password?</a>
+                    <input id="loginEmail" type="email" placeholder="Email" />
+                    <input id="loginPassword" type="password" placeholder="Password" />
+                    <!-- !!! TO BE ADDED !!! <a href="#">Forgot your password?</a> -->
                     <button onclick="loginUser()">Sign In</button>
-                </div>
+                </form>
             </div>
             <!--Side panel-->
             <div class="overlay-container">

@@ -7,10 +7,14 @@ const searchBtn = document.getElementById("searchBtn");
 const itemsList = document.querySelector(".items-list");
 
 // Open and close modals
-document.getElementById("loginBtn").onclick = () =>
+registerBtn.addEventListener("click", () => {
+  container.classList.add("right-panel-active");
   openModal("modal-container");
-document.getElementById("registerBtn").onclick = () =>
+});
+loginBtn.addEventListener("click", () => {
+  container.classList.remove("right-panel-active");
   openModal("modal-container");
+});
 
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
@@ -42,11 +46,11 @@ signInButton.addEventListener("click", () => {
 searchBtn.addEventListener("click", () => {
   const searchText = searchInput.value;
   const selectedCategory = categoryFilter.value;
-  fetchItems(searchText, selectedCategory);
+  fetchItemsByFilter(searchText, selectedCategory);
 });
 
-// Fetch items from the API
-async function fetchItems(search, category) {
+// Fetch items from the API by category and search
+async function fetchItemsByFilter(search, category) {
   const url = new URL("/api/items", window.location.origin);
   const params = new URLSearchParams();
 
@@ -59,6 +63,26 @@ async function fetchItems(search, category) {
   const data = await response.json();
 
   displayItems(data.items);
+  const page = 1;
+  resetPageNumber(page);
+}
+//Fetch items from API at Loading page
+document.addEventListener("DOMContentLoaded", () => {
+  fetchItems(currentPage, itemsPerPage);
+});
+
+let currentPage = 1;
+const itemsPerPage = 12;
+async function fetchItems(page = 1, limit = itemsPerPage) {
+  try {
+    const response = await fetch(`/api/items?page=${page}&limit=${limit}`);
+    const data = await response.json();
+    displayItems(data.items);
+    updatePageNumber(page);
+    togglePaginationButtons(data.totalItems);
+  } catch (error) {
+    console.error("Error fetching items:", error);
+  }
 }
 
 // Display items dynamically
@@ -81,21 +105,29 @@ function displayItems(items) {
 //Register user
 async function registerUser() {
   const username = document.getElementById("registerUsername").value;
+  const email = document.getElementById("registerEmail").value;
   const password = document.getElementById("registerPassword").value;
 
+  if (!username || !email || !password) {
+    alert("Please fill in all fields.");
+    return;
+  }
+
   try {
-    const response = await fetch("/api/register", {
+    const response = await fetch("/api/users/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, email, password }),
     });
 
     const data = await response.json();
     if (response.ok) {
-      alert(data.message);
-      closeModal("registerModal");
+      alert("Registration successful!");
+      localStorage.setItem("token", data.token); // Store token in local storage
+      closeModal("modal-container");
+      updateView(); // Update the main view for logged-in state
     } else {
-      alert(data.error);
+      alert(data.error || "An error occurred during registration");
     }
   } catch (error) {
     console.error("Error:", error);
@@ -105,21 +137,22 @@ async function registerUser() {
 
 //Login user
 async function loginUser() {
-  const username = document.getElementById("loginUsername").value;
+  const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
 
   try {
-    const response = await fetch("/api/login", {
+    const response = await fetch("/api/users/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     });
 
     const data = await response.json();
     if (response.ok) {
       alert("Login successful!");
       localStorage.setItem("token", data.token); // Store token in local storage
-      closeModal("loginModal");
+      closeModal("modal-container");
+      updateView();
     } else {
       alert(data.error);
     }
@@ -128,11 +161,46 @@ async function loginUser() {
     alert("An error occurred");
   }
 }
+
 // Check login status on load
 document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("token");
   if (token) {
-    document.getElementById("loginBtn").style.display = "none";
-    document.getElementById("registerBtn").style.display = "none";
+    updateView();
   }
 });
+//Update view after login/register
+function updateView() {
+  document.getElementById("loginBtn").style.display = "none";
+  document.getElementById("registerBtn").style.display = "none";
+}
+
+//Pagination functions
+function updatePageNumber(page) {
+  const pageNumber = document.getElementById("pageNumber");
+  pageNumber.textContent = `Page ${page}`;
+}
+function togglePaginationButtons(totalItems) {
+  const prevPageButton = document.getElementById("prevPage");
+  const nextPageButton = document.getElementById("nextPage");
+
+  prevPageButton.disabled = currentPage === 1;
+  nextPageButton.disabled = currentPage * itemsPerPage >= totalItems;
+}
+
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    fetchItems(currentPage, itemsPerPage);
+  }
+}
+
+function nextPage() {
+  currentPage++;
+  fetchItems(currentPage, itemsPerPage);
+}
+
+function resetPageNumber(page) {
+  const pageNumber = document.getElementById("pageNumber");
+  pageNumber.textContent = `Page ${page}`;
+}

@@ -65,7 +65,7 @@ router.get("/", async (req, res) => {
 
   try {
     const items = await Item.find(query)
-      .skip((page - 1) * limit) // Pagination: skip items based on page number
+      .skip((page - 1) * limit)
       .limit(limit); // Limit the number of items per page
 
     const totalItems = await Item.countDocuments(query); // Get the total count of items for pagination

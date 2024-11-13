@@ -7,7 +7,9 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const itemRoutes = require("./routes/itemRoutes");
 const userRoutes = require("./routes/userRoutes");
+const path = require("path");
 require("./models/Item");
+const User = require("./models/User.js");
 
 dotenv.config();
 
@@ -18,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({ origin: "http://localhost:3000" }));
 
 //Error handling
 app.use((err, req, res, next) => {
@@ -28,12 +30,13 @@ app.use((err, req, res, next) => {
 
 // Server Test
 
-app.use(express.static("public"));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
 // Database connection
 
 mongoose
-  .connect(process.env.DB_URI)
+  .connect(process.env.TEST_DB_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch((error) => console.error("MongoDB connection error:", error));
 
@@ -46,25 +49,42 @@ app.use("/api/items", itemRoutes);
 app.use("/api/users", userRoutes);
 
 // Register Route
-app.post("/api/register", async (req, res) => {
-  const { username, password } = req.body;
+app.post("/api/users/register", async (req, res) => {
+  const { username, email, password } = req.body;
+
+  // Check if all fields are provided
+  if (!username || !email || !password) {
+    return res
+      .status(400)
+      .json({ error: "Please provide username, email, and password" });
+  }
 
   try {
+    // Check if the username or email already exists
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ error: "Username or email already exists" });
+    }
+
+    // Hash the password and create a new user
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, password: hashedPassword });
+    const user = new User({ username, email, password: hashedPassword });
     await user.save();
+
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    res.status(400).json({ error: "Username already exists" });
+    res.status(500).json({ error: "An error occurred during registration" });
   }
 });
 
 // Login Route
-app.post("/api/login", async (req, res) => {
-  const { username, password } = req.body;
+app.post("/api/users/login", async (req, res) => {
+  const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
