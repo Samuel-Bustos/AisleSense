@@ -22,13 +22,18 @@ const itemSchema = new mongoose.Schema({
     required: [true, "Category is required"],
     trim: true,
   },
+  description: {
+    type: String,
+    trim: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
-  createdBy: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    required: true,
   },
   history: [
     {

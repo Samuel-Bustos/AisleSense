@@ -5,71 +5,63 @@ const router = express.Router();
 
 // Create Item
 
+// POST /api/items - Add a new item
 router.post("/", authMiddleware, async (req, res) => {
-  const { name, quantity, price, category } = req.body;
+  const { name, quantity, price, category, description } = req.body;
 
-  const newItem = new Item({
-    name,
-    quantity,
-    price,
-    category,
-    createdBy: req.user._id,
-  });
+  if (!name || !quantity || !price || !category) {
+    return res
+      .status(400)
+      .json({ message: "Name, quantity, price and category are required." });
+  }
 
-  // Log creation action
-  newItem.addHistory(
-    "created",
-    `Item ${name} created with quantity ${quantity}`
-  );
+  try {
+    const newItem = new Item({
+      name,
+      quantity,
+      price,
+      category,
+      description,
+      userId: req.user.id,
+    });
 
-  await newItem.save();
-  res.status(201).json(newItem);
+    await newItem.save();
+    res
+      .status(201)
+      .json({ message: "Item created successfully", item: newItem });
+  } catch (err) {
+    console.error("Error saving item:", err);
+    res.status(500).json({ message: "Server error", error: err });
+  }
 });
 
 // Get All Items (with pagination, search, and filtering)
 
-router.get("/", async (req, res) => {
-  const {
-    page = 1,
-    limit = 10,
-    search,
-    category,
-    minQuantity,
-    maxQuantity,
-  } = req.query;
+// Fetch user-specific items
+router.get("/", authMiddleware, async (req, res) => {
+  const { page = 1, limit = 10, search, category } = req.query;
 
-  const query = {};
+  // Build query to fetch only items for the logged-in user
+  const query = { userId: req.user.id };
 
+  // Additional filters
   if (search) {
-    // Search filter for name or category
     query.$or = [
-      { name: { $regex: search, $options: `i` } },
-      { category: { $regex: search, $options: `i` } },
+      { name: { $regex: search, $options: "i" } },
+      { category: { $regex: search, $options: "i" } },
     ];
   }
-
   if (category) {
-    // Filter by category
     query.category = category;
-  }
-
-  if (minQuantity) {
-    // Filter by minimum quantity
-    query.quantity = { $gte: parseInt(minQuantity) };
-  }
-
-  if (maxQuantity) {
-    // Filter by maximum quantity
-    query.quantity = { ...query.quantity, $lte: parseInt(maxQuantity) };
   }
 
   try {
     const items = await Item.find(query)
       .skip((page - 1) * limit)
-      .limit(limit); // Limit the number of items per page
+      .limit(parseInt(limit));
 
-    const totalItems = await Item.countDocuments(query); // Get the total count of items for pagination
-    const totalPages = Math.ceil(totalItems / limit); // Calculate total pages
+    const totalItems = await Item.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / limit);
 
     res.status(200).json({
       items,
@@ -92,44 +84,60 @@ router.get("/:id", async (req, res) => {
 
 // Update Item
 router.put("/:id", authMiddleware, async (req, res) => {
-  const { name, quantity, price, category } = req.body;
+  const { name, quantity, price, category, description } = req.body;
 
-  const item = await Item.findById(req.params.id);
-  if (!item) return res.status(404).json({ message: "Item not found" });
+  try {
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: "Item not found" });
 
-  if (item.createdBy.toString() !== req.user._id.toString()) {
-    return res.status(403).json({ message: "Unauthorized" });
+    if (item.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    item.name = name || item.name;
+    item.quantity = quantity || item.quantity;
+    item.price = price || item.price;
+    item.category = category || item.category;
+    item.description = description || item.description;
+
+    // Log update action
+    item.addHistory(
+      "updated",
+      `Item ${item.name} updated to ${name || item.name}`
+    );
+
+    await item.save();
+    res.status(200).json(item);
+  } catch (error) {
+    console.error("Error updating item:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
-
-  item.name = name || item.name;
-  item.quantity = quantity || item.quantity;
-  item.price = price || item.price;
-  item.category = category || item.category;
-
-  // Log update action
-  updatedItem.addHistory(
-    "updated",
-    `Item ${item.name} updated to ${name || item.name}`
-  );
-
-  await item.save();
-  res.status(200).json(item);
 });
 
 // Delete Item
 router.delete("/:id", authMiddleware, async (req, res) => {
-  const item = await Item.findById(req.params.id);
-  if (!item) return res.status(404).json({ message: "Item not found" });
+  try {
+    const item = await Item.findById(req.params.id);
 
-  if (item.createdBy.toString() !== req.user._id.toString()) {
-    return res.status(403).json({ message: "Unauthorized" });
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    // Ensure the authenticated user is the owner of the item
+    if (item.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    // Log delete action (assuming `addHistory` is a method you’ve set up in your Item model)
+    await item.addHistory("deleted", `Item ${item.name} deleted`);
+
+    // Delete the item using `findByIdAndDelete`
+    await Item.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Item deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    res.status(500).json({ message: "Server error" });
   }
-
-  // Log delete action
-  item.addHistory("deleted", `Item ${item.name} deleted`);
-
-  await item.remove();
-  res.status(200).json({ message: "Item deleted" });
 });
 
 module.exports = router;

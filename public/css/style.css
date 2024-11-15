@@ -93,6 +93,7 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
   width: 100%;
+  height: 57vh;
   margin-top: 30px;
 }
 
@@ -176,11 +177,6 @@ body {
 /* Login and register style*/
 
 @import url("https://fonts.googleapis.com/css?family=Montserrat:400,800");
-
-h1 {
-  font-weight: bold;
-  margin: 0;
-}
 
 h2 {
   text-align: center;
@@ -403,4 +399,64 @@ input {
 
 .modal-main-container.right-panel-active .overlay-right {
   transform: translateX(20%);
+}
+
+/* Add forms styling */
+/* Overlay background */
+.modal-Form {
+  position: fixed;
+  width: 50vw;
+  height: 50vh;
+  background: rgba(255, 255, 255, 0.877); /* Semi-transparent dark overlay */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+  z-index: 1000;
+}
+
+/* Form container */
+.modal-Form h3 {
+  margin-bottom: 20px;
+  font-size: 1.5em;
+  text-align: center;
+  color: #333;
+}
+
+.modal-Form input,
+.modal-Form textarea,
+.add-btn {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  font-size: 1em;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+/* Button styling */
+.add-btn,
+.update-btn {
+  background-color: #5a9;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-btn,
+.update-btn:hover {
+  background-color: #488;
+}
+
+/* Centered form box */
+.modal-Form form {
+  background-color: white;
+  width: 90%;
+  max-width: 400px;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }

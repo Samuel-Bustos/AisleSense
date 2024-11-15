@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management App</title>
+    <title>AisleSense</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 
@@ -22,25 +22,48 @@
             <input type="text" id="searchInput" placeholder="Search for items..." class="search-input">
             <select id="categoryFilter" class="filter-input">
                 <option value="">All Categories</option>
-                <option value="electronics">Electronics</option>
-                <option value="furniture">Furniture</option>
-                <option value="clothing">Clothing</option>
             </select>
-            <button id="searchBtn" class="search-btn">Search</button>
+            <button id="searchBtn" class="search-btn" onclick="searchItems()">Search</button>
+            <button id="addBtn" class="addbtn" onclick="openModal('addForm')">Add</button>
         </section>
 
         <section class="items-list">
             <!-- Items will generate here -->
         </section>
         <div id="pagination">
-            <button id="prevPage" onclick="prevPage()">Previous</button>
+            <button id="prevPage">Previous</button>
             <span id="pageNumber">Page 1</span>
-            <button id="nextPage" onclick="nextPage()">Next</button>
+            <button id="nextPage">Next</button>
         </div>
 
         <footer class="footer">
             <p>&copy; 2024 AisleSense</p>
         </footer>
+
+        <!-- Add New Item Form -->
+        <div id="addForm" class="modal-Form" style="display: none;">
+            <span class="close" onclick="closeModal('addForm')">&times;</span>
+            <h3>Add New Item</h3>
+            <input type="text" id="newItemName" placeholder="Item Name" required />
+            <input type="number" id="newItemQuantity" placeholder="Quantity" required />
+            <input type="number" id="newItemPrice" placeholder="Price" required />
+            <input type="text" id="newItemCategory" placeholder="Category" required />
+            <textarea id="newItemDescription" placeholder="Description"></textarea>
+            <button class="add-btn" onclick="addItem()">Add Item</button>
+        </div>
+
+        <!-- Update Item Form -->
+        <div id="updateForm" class="modal-Form" style="display: none;">
+            <span class="close" onclick="closeModal('updateForm')">&times;</span>
+            <h3>Update Item</h3>
+            <input type="text" id="updateItemName" placeholder="Item Name" required />
+            <input type="number" id="updateItemQuantity" placeholder="Quantity" required />
+            <input type="number" id="updateItemPrice" placeholder="Price" required />
+            <input type="text" id="updateItemCategory" placeholder="Category" required />
+            <textarea id="updateItemDescription" placeholder="Description"></textarea>
+            <button class="update-btn" onclick="updateItem()">Update Item</button>
+        </div>
+
     </div>
 
 
@@ -88,6 +111,9 @@
             </div>
         </div>
     </div>
+    <!-- Modal Login/Register End -->
+
+
 
     <script src="/js/scrypt.js"></script>
 </body>
